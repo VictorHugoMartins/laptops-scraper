@@ -38,7 +38,7 @@ class LaptopsResource(Resource):
             # Captura qualquer outro erro
             return jsonify({'error': 'Erro interno do servidor', 'details': str(e)}), 500
 
-@app.route('/')
+@app.route('/ping')
 def home():
     return jsonify({"message": "API Flask rodando na Vercel"})
 

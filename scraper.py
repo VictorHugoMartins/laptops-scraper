@@ -4,6 +4,10 @@ import re
 from datetime import datetime
 from typing import List, Dict, Optional, Union
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 # VARIÁVEIS GLOBAIS
 collection_date: str = datetime.now().strftime('%Y-%m-%d')
 list_base_url: str = 'https://webscraper.io/test-sites/e-commerce/static/computers/laptops'
@@ -17,7 +21,7 @@ def extract_features(description: str) -> Dict[str, Optional[str]]:
     processor = re.search(r'Core\s*[i][0-9]{1,2}-[0-9]{1,4}U', description)
     ram = re.search(r'\d+GB', description)
     storage = re.search(r'\d+GB\s*(SSD|HDD|SSHD)', description)
-    os = re.search(r'Windows\s*[0-9]+', description)
+    os = description.split(',')[-1][1:]
 
     return {
         'Marca': brand.group(0) if brand else None,
@@ -25,7 +29,7 @@ def extract_features(description: str) -> Dict[str, Optional[str]]:
         'Processador': processor.group(0) if processor else None,
         'RAM': ram.group(0) if ram else None,
         'Armazenamento': storage.group(0) if storage else None,
-        'Sistema Operacional': os.group(0) if os else None
+        'Sistema Operacional': os if os else None
     }
 
 # Função para extrair detalhes adicionais dos produtos
@@ -63,7 +67,7 @@ def extract_laptops_from_page(url: str, all_brands: bool = False) -> List[Dict[s
         items = soup.find_all('div', class_='card thumbnail')
         
         for item in items:
-            name = item.find('a', class_='title').text.strip()
+            name = item.find('a', class_='title')['title'].strip()
             price = item.find('h4', class_='price').text.strip()
             description = item.find('p', class_='description').text.strip()
             image_url = item.find('img', class_='img-fluid')['src']
@@ -94,7 +98,7 @@ def extract_laptops_from_page(url: str, all_brands: bool = False) -> List[Dict[s
 
             laptops.append(features)
     else:
-        print(f'Falha na requisição: Status code {response.status_code}')
+        logging.error(f'Falha na requisição: Status code {response.status_code}')
     return laptops
 
 # Função para obter o número da última página
@@ -124,7 +128,7 @@ def extract_laptops(page_number: Optional[int] = None, max_laptops: Optional[int
     # Se uma página específica for fornecida, coleta dados apenas dessa página
     if page_number:
         url: str = f'{base_url}?page={page_number}'
-        print(f'Extraindo dados da página {page_number}...')
+        logging.info(f'Extraindo dados da página {page_number}...')
         laptops: List[Dict[str, Union[str, int]]] = extract_laptops_from_page(url, all_brands=all_brands)
         all_laptops.extend(laptops)
         laptops_collected += len(laptops)
@@ -132,7 +136,7 @@ def extract_laptops(page_number: Optional[int] = None, max_laptops: Optional[int
         # Itera sobre cada página
         for page in range(1, last_page + 1):
             url: str = f'{base_url}?page={page}'
-            print(f'Extraindo dados da página {page}...')
+            logging.info(f'Extraindo dados da página {page}...')
             laptops: List[Dict[str, Union[str, int]]] = extract_laptops_from_page(url, all_brands=all_brands)
             all_laptops.extend(laptops)
             laptops_collected += len(laptops)

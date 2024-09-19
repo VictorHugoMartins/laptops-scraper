@@ -30,7 +30,10 @@ class LaptopsResource(Resource):
             # Captura qualquer outro erro
             return jsonify({'error': 'Erro interno do servidor', 'details': str(e)}), 500
 
-# Manipuladores de erro personalizados
+@app.route('/')
+def home():
+    return jsonify({"message": "API Flask rodando na Vercel"})
+
 @app.errorhandler(400)
 def bad_request_error(error):
     return jsonify({'error': 'Requisição mal formada', 'details': str(error)}), 400

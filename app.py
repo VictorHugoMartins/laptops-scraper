@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_restx import Api, Resource, reqparse
-from scraper import extract_laptops
+from scraper import LaptopScraper
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='IN8 Laptops API', description='Scrape laptops from Web Scraper Test Sites')
@@ -13,7 +13,7 @@ laptop_parser.add_argument('all_brands', type=bool, required=False, help='Inclui
 
 @api.route('/laptops')
 class LaptopsResource(Resource):
-    @api.expect(laptop_parser)  # Isso garante que os parâmetros apareçam no Swagger
+    @api.expect(laptop_parser)
     def get(self):
         try:
             # Obtém parâmetros da query string
@@ -23,12 +23,13 @@ class LaptopsResource(Resource):
             all_brands = args.get('all_brands')  # Será None se não for fornecido
             
             # Chama a função de scraping com os parâmetros opcionais
-            all_laptops = extract_laptops(page_number=page_number, max_laptops=max_laptops, all_brands=all_brands)
+            scraper = LaptopScraper()
+            laptops_data = scraper.extract_laptops(page_number=page_number, max_laptops=max_laptops, all_brands=all_brands)
 
-            if not all_laptops:
+            if not laptops_data:
                 return jsonify({'message': 'Nenhum laptop encontrado'})
 
-            return jsonify(all_laptops)
+            return jsonify(laptops_data)
 
         except ValueError as e:
             # Exemplo de erro de valor, como erros ao processar dados

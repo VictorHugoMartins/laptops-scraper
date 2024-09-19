@@ -54,7 +54,7 @@ def extract_product_details(product_url: str) -> Dict[str, Dict[str, str]]:
     return details
 
 # Função para extrair dados dos laptops de uma página
-def extract_laptops_from_page(url: str) -> List[Dict[str, Union[str, int]]]:
+def extract_laptops_from_page(url: str, all_brands: bool = False) -> List[Dict[str, Union[str, int]]]:
     response = requests.get(url)
     laptops: List[Dict[str, Union[str, int]]] = []
 
@@ -72,6 +72,10 @@ def extract_laptops_from_page(url: str) -> List[Dict[str, Union[str, int]]]:
 
             product_link = "https://webscraper.io" + item.find('a', class_='title')['href']
             product_id = product_link.split('/')[-1]
+
+            # Verifica se a marca contém "Lenovo" ou se o parâmetro all_brands é True
+            if not all_brands and 'Lenovo' not in description:
+                continue
 
             product_details = extract_product_details(product_link)
 
@@ -105,21 +109,34 @@ def get_last_page_number(base_url: str) -> int:
             return int(last_page)
     return 1
 
-def extract_laptops():
+# Função para extrair laptops com parâmetros opcionais
+def extract_laptops(page_number: Optional[int] = None, max_laptops: Optional[int] = None, all_brands: bool = False) -> List[Dict[str, Union[str, int]]]:
     # URL base da primeira página
     base_url: str = 'https://webscraper.io/test-sites/e-commerce/static/computers/laptops'
 
-    # Obtém o número da última página
-    last_page: int = get_last_page_number(base_url)
+    # Obtém o número da última página se não for especificada uma página específica
+    last_page: int = get_last_page_number(base_url) if page_number is None else page_number
 
     # Lista para armazenar todos os dados dos laptops
     all_laptops: List[Dict[str, Union[str, int]]] = []
+    laptops_collected: int = 0
 
-    # Itera sobre cada página
-    for page in range(1, last_page + 1):
-        url: str = f'{base_url}?page={page}'
-        print(f'Extraindo dados da página {page}...')
-        laptops: List[Dict[str, Union[str, int]]] = extract_laptops_from_page(url)
+    # Se uma página específica for fornecida, coleta dados apenas dessa página
+    if page_number:
+        url: str = f'{base_url}?page={page_number}'
+        print(f'Extraindo dados da página {page_number}...')
+        laptops: List[Dict[str, Union[str, int]]] = extract_laptops_from_page(url, all_brands=all_brands)
         all_laptops.extend(laptops)
+        laptops_collected += len(laptops)
+    else:
+        # Itera sobre cada página
+        for page in range(1, last_page + 1):
+            url: str = f'{base_url}?page={page}'
+            print(f'Extraindo dados da página {page}...')
+            laptops: List[Dict[str, Union[str, int]]] = extract_laptops_from_page(url, all_brands=all_brands)
+            all_laptops.extend(laptops)
+            laptops_collected += len(laptops)
+            if max_laptops and laptops_collected >= max_laptops:
+                break
 
     return all_laptops

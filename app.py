@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_restx import Api, Resource
 from scraper import extract_laptops
 
@@ -9,8 +9,12 @@ api = Api(app, version='1.0', title='IN8 Laptops API', description='Scrape lapto
 class LaptopsResource(Resource):
     def get(self):
         try:
-            all_laptops = []
-            all_laptops = extract_laptops()
+            # Obtém parâmetros da query string
+            page_number = request.args.get('page', type=int)
+            max_laptops = request.args.get('max', type=int)
+            
+            # Chama a função de scraping com parâmetros opcionais
+            all_laptops = extract_laptops(page_number=page_number, max_laptops=max_laptops)
 
             if not all_laptops:
                 return jsonify({'message': 'Nenhum laptop encontrado'})

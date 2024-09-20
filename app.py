@@ -1,58 +1,67 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_restx import Api, Resource, reqparse
 from scraper import LaptopScraper
 
 app = Flask(__name__)
-api = Api(app, version='1.0', title='IN8 Laptops API', description='Scrape laptops from Web Scraper Test Sites')
+api = Api(app, version='1.0', title='IN8 Laptops API', description='Scrape laptops from Web Scraper Test Sites\n\nDeveloped by Victor Martins')
 
-# Definindo os parâmetros opcionais, sem valores padrão
+# Definindo os parâmetros opcionais
 laptop_parser = reqparse.RequestParser()
-laptop_parser.add_argument('page', type=int, required=False, help='Número da página')
-laptop_parser.add_argument('limit', type=int, required=False, help='Quantidade máxima de laptops')
-laptop_parser.add_argument('all_brands', type=bool, required=False, help='Incluir todas as marcas ou não')
+laptop_parser.add_argument('page', type=int, help='Número da página')
+laptop_parser.add_argument('limit', type=int, help='Quantidade máxima de laptops')
+laptop_parser.add_argument('all_brands', type=bool, help='Incluir todas as marcas ou não')
 
-@api.route('/laptops')
+laptop_ns = api.namespace('laptops', description='Operações relacionadas a laptops')
+
+@laptop_ns.route('/')
 class LaptopsResource(Resource):
-    @api.expect(laptop_parser)
+    """
+    Classe para gerenciar laptops.
+
+    Métodos:
+        get: Retorna uma lista de laptops.
+    """
+
+    @laptop_ns.doc('get_laptops')
+    @laptop_ns.expect(laptop_parser)
     def get(self):
+        """
+        Recupera uma lista de laptops.
+
+        Returns:
+            Response: JSON contendo a lista de laptops.
+        """
         try:
             # Obtém parâmetros da query string
             args = laptop_parser.parse_args()
             page_number = args.get('page')  # Será None se não for fornecido
             max_laptops = args.get('limit')  # Será None se não for fornecido
-            all_brands = args.get('all_brands')  # Será None se não for fornecido
+            all_brands = args.get('all_brands')  # Não deve ter valor padrão, será None se não for fornecido
             
             # Chama a função de scraping com os parâmetros opcionais
             scraper = LaptopScraper()
             laptops_data = scraper.extract_laptops(page_number=page_number, max_laptops=max_laptops, all_brands=all_brands)
 
             if not laptops_data:
-                return jsonify({'message': 'Nenhum laptop encontrado'})
+                return jsonify({'message': 'Nenhum laptop encontrado'}), 404
 
             return jsonify(laptops_data)
 
         except ValueError as e:
-            # Exemplo de erro de valor, como erros ao processar dados
             return jsonify({'error': 'Erro ao processar dados', 'details': str(e)}), 400
         
         except Exception as e:
-            # Captura qualquer outro erro
             return jsonify({'error': 'Erro interno do servidor', 'details': str(e)}), 500
 
-@app.route('/ping')
-def home():
-    return jsonify({"message": "API Flask rodando na Vercel"})
+@laptop_ns.route('/ping')
+class PingResource(Resource):
+    def get(self):
+        return jsonify({"message": "API Flask rodando na Vercel"})
 
-@app.errorhandler(400)
-def bad_request_error(error):
-    return jsonify({'error': 'Requisição mal formada', 'details': str(error)}), 400
-
-@app.errorhandler(404)
-def not_found_error(error):
-    return jsonify({'error': 'Recurso não encontrado', 'details': str(error)}), 404
-
-@app.errorhandler(500)
-def internal_server_error(error):
+# Definindo manipuladores de erro diretamente na API
+@api.errorhandler
+def handle_error(error):
+    """Manipulador de erro genérico"""
     return jsonify({'error': 'Erro interno do servidor', 'details': str(error)}), 500
 
 if __name__ == '__main__':

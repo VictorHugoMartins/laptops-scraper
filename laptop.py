@@ -2,12 +2,13 @@ from typing import Optional, Dict
 import json
 
 class Laptop:
-    def __init__(self, name: str, price: str, brand: str, dimensions: Optional[str], processor: Optional[str],
+    def __init__(self, name: str, price: float, currency: str, brand: str, dimensions: Optional[str], processor: Optional[str],
                  ram: Optional[str], storage: Optional[str], os: Optional[str], image_url: str,
                  review_count: str, rating_stars: int, product_link: str, product_id: str, hdd: Optional[Dict[str, str]], 
                  collection_date: str):
         self.name = name
         self.price = price
+        self.currency = currency
         self.brand = brand
         self.dimensions = dimensions
         self.processor = processor
@@ -23,7 +24,7 @@ class Laptop:
         self.collection_date = collection_date
 
     def __repr__(self):
-        return f"Laptop({self.name}, {self.price}, {self.brand}, {self.dimensions}, {self.processor}, " \
+        return f"Laptop({self.name}, {self.price}, {self.currency}, {self.brand}, {self.dimensions}, {self.processor}, " \
                f"{self.ram}, {self.storage}, {self.os}, {self.image_url}, {self.review_count}, " \
                f"{self.rating_stars}, {self.product_link}, {self.product_id}, {self.hdd}, {self.collection_date})"
     

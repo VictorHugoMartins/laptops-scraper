@@ -7,6 +7,8 @@ from typing import List, Dict, Optional
 from laptop import Laptop
 import json
 
+from utils import extrair_valor
+
 logging.basicConfig(level=logging.DEBUG)
 
 class LaptopScraper:
@@ -55,7 +57,7 @@ class LaptopScraper:
 
         return details
 
-    def create_laptop(self, name: str, price: str, description: str, image_url: str, 
+    def create_laptop(self, name: str, price: float, currency: str, description: str, image_url: str, 
                       review_count: str, rating_stars: int, product_link: str, product_id: str) -> Laptop:
         features = self.extract_features(description)
         product_details = self.extract_product_details(product_link)
@@ -63,6 +65,7 @@ class LaptopScraper:
         l = Laptop(
             name=name,
             price=price,
+            currency=currency,
             brand=features['Marca'],
             dimensions=features['Dimensões'],
             processor=features['Processador'],
@@ -89,7 +92,9 @@ class LaptopScraper:
 
             for item in items:
                 name = item.find('a', class_='title')['title'].strip()
-                price = item.find('h4', class_='price').text.strip()
+                price_text = item.find('h4', class_='price').text.strip()
+                price = extrair_valor(price_text)
+                currency = price_text[0]
                 description = item.find('p', class_='description').text.strip()
                 image_url = item.find('img', class_='img-fluid')['src']
                 review_count = item.find('p', class_='review-count').text.strip().replace(' reviews', '')
@@ -101,7 +106,7 @@ class LaptopScraper:
                 if not all_brands and 'Lenovo' not in description:
                     continue
 
-                laptop = self.create_laptop(name, price, description, image_url, review_count, rating_stars, product_link, product_id)
+                laptop = self.create_laptop(name, price, currency, description, image_url, review_count, rating_stars, product_link, product_id)
                 laptops.append(laptop)
         else:
             logging.error(f'Falha na requisição: Status code {response.status_code}')

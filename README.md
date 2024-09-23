@@ -24,10 +24,11 @@ Por padrão, o endpoint retorna todos os laptops da marca **Lenovo** presentes n
 - **Opções de HDD** (disponíveis em 128GB, 256GB, 512GB, 1024GB, se habilitadas)
 - **Data da coleta** das informações
 
-### Principais bibliotecas utilizadas:
+### Principais bibliotecas e ferramentas utilizadas:
 - `Requests` — para realizar as requisições HTTP
 - `BeautifulSoup` — para fazer o parsing do HTML
 - `Typing` — para garantir a tipagem adequada dos endpoints
 - `Flask` — para a criação da API
+- `Vercel` — para disponibilização da API
 
 A API também está documentada e disponível para uso, incluindo a interface Swagger, no seguinte link: [Laptops Scraper API](https://laptops-scraper.vercel.app/).

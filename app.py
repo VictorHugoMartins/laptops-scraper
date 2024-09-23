@@ -3,7 +3,7 @@ from flask_restx import Api, Resource, reqparse
 from scraper import LaptopScraper
 
 app = Flask(__name__)
-api = Api(app, version='1.0', title='IN8 Laptops API', description='Scrape laptops from Web Scraper Test Sites\n\nDeveloped by Victor Martins')
+api = Api(app, version='1.0', title='Scraper Laptops API', description='Scrape laptops from Web Scraper Test Sites\n\nDeveloped by Victor Martins')
 
 # Definindo os parâmetros opcionais
 laptop_parser = reqparse.RequestParser()
